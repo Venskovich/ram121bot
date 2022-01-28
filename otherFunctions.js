@@ -8,7 +8,7 @@ const fs = require("fs")
 //Export
 module.exports = { delay, delayToMonday, saveStats, savePlayers, getName }
 
-// Function to calculate delay to midnight
+// Function to calculate delay to appropriate hour
 function delay(hours) {
 
     let thisDay = new Date()
