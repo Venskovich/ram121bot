@@ -4,11 +4,14 @@ const token = require("./token")
 const bot = new TelegramApi(token, { polling: true })
 
 // Getting data from files to operate with
-const fs = require("fs")
-var specialChatId = require("./specialChatId")
-var devId = require("./devId")
-var stats = require("./stats")
-var players = require("./players")
+var specialChatId = require("./specialChatId.json")
+var devId = require("./devId.json")
+var stats = require("./stats.json")
+var players = require("./players.json")
+
+// Import
+const { delay, delayToMonday, saveStats, savePlayers } = require("./otherFunctions")
+const { createPlayer, getPlayer, getTopPosition, update } = require("./playerFunctions")
 
 
 
@@ -33,7 +36,8 @@ var commands = {
     start: "/start"
 }
 var allCommands = ["/ram", "/ram@ram121bot", "/top", "/top@ram121bot", "/topwin", "/topwin@ram121bot", "/readme", "/readme@ram121bot", "/start", "/start@ram121bot"]
-var devCommands = ["/stats", "/stats@ram121bot", "/update", "/update@nauweekbot"]
+var devCommands = ["/stats", "/stats@ram121bot", "/update", "/update@ram121bot"]
+
 
 
 
@@ -122,9 +126,6 @@ bot.on("message", msg => {
     }
 
 
-    // Deleting messages
-    deleteMessages(chatId, msgId)
-
     // Increasing stats counter
     stats++
 
@@ -133,15 +134,32 @@ bot.on("message", msg => {
 
 
     // If a player plays the game outside the chat the bot was created for, then warn him to play rambot there
+    // Do not delete messages if it is another chat
     if (chatId != specialChatId) {
+
         sendMessage(chatId, `Play there: @nause121`)
+        return
+
+    }
+
+
+    // Deleting messages
+    if (text.includes(commands.topWin) || text.includes(commands.top) || text.includes(commands.readme)) {
+
+        deleteMessages(chatId, msgId, true, 60)
+
+    } else {
+
+        deleteMessages(chatId, msgId)
+        
     }
 
 })
 
 
 
-// Update playedToday status every midnight
+
+// Update playedToday status at 6am and 5pm
 setTimeout(function () {
 
     update()
@@ -156,22 +174,23 @@ setTimeout(function () {
 
     }, 24 * 60 * 60 * 1000)
 
-}, delayToMidnight())
+}, delay(6))
 
-// Function to calculate delay to midnight
-function delayToMidnight() {
+setTimeout(function () {
 
-    let thisDay = new Date()
-    let nextDay = new Date()
+    update()
+    sendMessage(specialChatId, `/ram is allowed`)
+    savePlayers()
 
-    nextDay.setDate(thisDay.getDate() + 1)
-    nextDay.setHours(0, 0, 0, 0)
+    setInterval(function () {
 
-    return nextDay.getTime() - thisDay.getTime()
+        update()
+        sendMessage(specialChatId, `/ram is allowed`)
+        savePlayers()
 
-}
+    }, 24 * 60 * 60 * 1000)
 
-
+}, delay(17))
 
 // Execute startNewWeek() function every Monday midnigh
 setTimeout(function () {
@@ -188,24 +207,6 @@ setTimeout(function () {
 
 }, delayToMonday())
 
-// Calculate time to Monday
-function delayToMonday() {
-
-    let today = new Date()
-    let monday = new Date()
-
-    // Calulating days to Monday
-    let daysToMonday = 7 - today.getDay()
-    if (daysToMonday == 7) {
-        daysToMonday = 0
-    }
-
-    monday.setDate(today.getDate() + daysToMonday + 1)
-    monday.setHours(0, 0, 0, 0)
-
-    return monday.getTime() - today.getTime()
-
-}
 
 
 
@@ -217,7 +218,7 @@ function ram(player) {
 
     // If player has already played ram today, then return him the following message
     if (player.playedToday) {
-        return `${reply} you have already played today\n>RAM: ${player.ram}\n>Pos: ${getTopPosition(player.id)} of ${players.length}`
+        return `${reply} you have already played today\n>RAM: ${player.ram}GB\n>Pos: ${getTopPosition(player.id)} of ${players.length}`
     }
 
 
@@ -231,11 +232,9 @@ function ram(player) {
     player.activeDuringWeek = true
 
     // Returning a message of change
-    return `${reply} your ram was ${change < 0 ? "decreased" : "increased"} by ${change}\n>RAM: ${player.ram}\n>Pos: ${getTopPosition(player.id)} of ${players.length}`
+    return `${reply} your ram was ${change < 0 ? "decreased" : "increased"} by ${change}GB\n>RAM: ${player.ram}GB\n>Pos: ${getTopPosition(player.id)} of ${players.length}`
 
 }
-
-
 
 // Function to get top 10 players of the week
 function top() {
@@ -293,84 +292,6 @@ function topWin() {
 
 }
 
-// Function to get top ram position
-function getTopPosition(id) {
-
-    // Sorting players by ram
-    players.sort(function (a, b) {
-        if (a.ram < b.ram) {
-            return 1
-        }
-        if (a.ram > b.ram) {
-            return -1
-        }
-        return 0
-    })
-
-    // Writing the message
-    for (let i = 0; i < players.length; i++) {
-        if (players[i].id === id) {
-            return i + 1
-        }
-    }
-
-    return false
-
-}
-
-
-
-// Function to create new player
-function createPlayer(user) {
-
-    // Checking if this user is already a player. If it is, the new player is NOT created
-    if (isPlayer(user.id)) {
-        return
-    }
-
-    // Creating new player
-    let newPlayer = {
-        id: user.id,
-        name: getName(user),
-        ram: 0,
-        playedToday: false,
-        winRank: 0,
-        activeDuringWeek: false
-    }
-
-    // Pushing new player
-    players.push(newPlayer)
-
-}
-
-// Function to get player by id
-function getPlayer(id) {
-
-    for (player of players) {
-        if (player.id === id) {
-            return player
-        }
-    }
-
-    return false
-
-}
-
-// Function to check if a user is already a player
-function isPlayer(id) {
-
-    for (player of players) {
-        if (player.id === id) {
-            return true
-        }
-    }
-
-    return false
-
-}
-
-
-
 // Functions to get either readme or start message
 function readme() {
     return `<a href="https://telegra.ph/ram121-01-15">Gameplay & Update news</a>`
@@ -381,14 +302,6 @@ function start() {
 
 
 
-// Developer command / Function to update players playerToday status
-function update() {
-
-    for (player of players) {
-        player.playedToday = false
-    }
-
-}
 
 // Developer command / Function to get stats info
 function getStats() {
@@ -435,36 +348,6 @@ function startNewWeek() {
 
 
 
-// Functions to save data
-function saveStats() {
-    fs.writeFile("stats.json", JSON.stringify(stats), err => {
-        if (err) throw err; // Checking for errors
-    })
-}
-function savePlayers() {
-    fs.writeFile("players.json", JSON.stringify(players), err => {
-        if (err) throw err; // Checking for errors
-    })
-}
-
-
-
-// Function to get name from the user profile
-function getName(user) {
-
-    if (user.first_name && user.last_name) {
-        return `${user.first_name} ${user.last_name}`
-    } else if (user.first_name) {
-        return `${user.first_name}`
-    } else if (user.last_name) {
-        return `${user.last_name}`
-    } else {
-        return `Player`
-    }
-
-}
-
-
 
 // Simplified way to send a message
 function sendMessage(chatId, text) {
@@ -472,7 +355,7 @@ function sendMessage(chatId, text) {
 }
 
 // Function to clear up user command request message and bot's reply
-function deleteMessages(chatId, msgId, deleteReply = true, delay = 60) {
+function deleteMessages(chatId, msgId, deleteReply = true, delay = 30) {
 
     setTimeout(function () {
         bot.deleteMessage(chatId, msgId)
