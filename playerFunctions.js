@@ -1,39 +1,31 @@
-// Getting data from files to operate with
-var players = require("./players.json")
-
 // Import
-const { getName } = require("./otherFunctions")
+const { getName, getTopLength } = require("./otherFunctions")
 
 // Export
-module.exports = { createPlayer, getPlayer, getTopPosition, update }
+module.exports = { createPlayer, getPlayer, isPlayer, getTopPosition, updatePlayed }
 
 
 
 // Function to create new player
 function createPlayer(user) {
 
-    // Checking if this user is already a player. If it is, the new player is NOT created
-    if (isPlayer(user.id)) {
-        return
-    }
-
     // Creating new player
     let newPlayer = {
         id: user.id,
         name: getName(user),
         ram: 0,
-        playedToday: false,
+        played: false,
         winRank: 0,
-        activeDuringWeek: false
+        active: false
     }
 
-    // Pushing new player
-    players.push(newPlayer)
+    // Returning newPlayer to be pushed
+    return newPlayer
 
 }
 
 // Function to get player by id
-function getPlayer(id) {
+function getPlayer(id, players) {
 
     for (player of players) {
         if (player.id === id) {
@@ -41,12 +33,10 @@ function getPlayer(id) {
         }
     }
 
-    return false
-
 }
 
 // Function to check if a user is already a player
-function isPlayer(id) {
+function isPlayer(id, players) {
 
     for (player of players) {
         if (player.id === id) {
@@ -59,10 +49,18 @@ function isPlayer(id) {
 }
 
 // Function to get top ram position
-function getTopPosition(id) {
+function getTopPosition(player, players) {
+
+    // Creating copy of players array, buy only of active players
+    let playersCopy = []
+    for (player of players) {
+        if (player.active) {
+            playersCopy.push(player)
+        }
+    }
 
     // Sorting players by ram
-    players.sort(function (a, b) {
+    playersCopy.sort(function (a, b) {
         if (a.ram < b.ram) {
             return 1
         }
@@ -72,22 +70,21 @@ function getTopPosition(id) {
         return 0
     })
 
-    // Writing the message
-    for (let i = 0; i < players.length; i++) {
-        if (players[i].id === id) {
-            return i + 1
-        }
-    }
+    for (let i = 0; i < playersCopy.length; i++) {
 
-    return false
+        if (playersCopy[i].id === player.id) {
+            return `${i + 1} of ${playersCopy.length}`
+        }
+
+    }
 
 }
 
 // Function to update players playerToday status
-function update() {
+function updatePlayed(players) {
 
     for (player of players) {
-        player.playedToday = false
+        player.played = false
     }
 
 }

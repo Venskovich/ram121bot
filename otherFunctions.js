@@ -1,14 +1,10 @@
-// Getting data from files to operate with
-var stats = require("./stats.json")
-var players = require("./players.json")
-
 // Import
 const fs = require("fs")
 
 //Export
-module.exports = { delay, delayToMonday, saveStats, savePlayers, getName }
+module.exports = { delay, delayToMonday, saveStats, savePlayers, getName, sendMessage, deleteMessage, getTopLength, sendMessageEverywhere, saveChats }
 
-// Function to calculate delay to appropriate hour
+// Function to calculate delay to midnight
 function delay(hours) {
 
     let thisDay = new Date()
@@ -44,13 +40,18 @@ function delayToMonday() {
 }
 
 // Functions to save data
-function saveStats() {
+function saveStats(stats) {
     fs.writeFile("stats.json", JSON.stringify(stats), err => {
         if (err) throw err; // Checking for errors
     })
 }
-function savePlayers() {
+function savePlayers(players) {
     fs.writeFile("players.json", JSON.stringify(players), err => {
+        if (err) throw err; // Checking for errors
+    })
+}
+function saveChats(chats) {
+    fs.writeFile("chats.json", JSON.stringify(chats), err => {
         if (err) throw err; // Checking for errors
     })
 }
@@ -66,6 +67,52 @@ function getName(user) {
         return `${user.last_name}`
     } else {
         return `Player`
+    }
+
+}
+
+// Function to return length of top list 
+function getTopLength(players, status = "") {
+    
+    let counter = 0
+
+    if (status === "ram") {
+        
+        for (player of players) {
+            counter += player.active ? 1 : 0
+        }
+
+    } else if (status === "winRank") {
+
+        for (player of players) {
+            counter += player.winRank > 0 ? 1 : 0
+        }
+
+    }
+
+    return counter > 10 ? 10 : counter
+
+}
+
+// Simplified way to send a message
+function sendMessage(bot, chatId, text) {
+    bot.sendMessage(chatId, text, { parse_mode: "HTML" })
+}
+
+// Function to clear up user command request message and bot's reply
+function deleteMessage(bot, chatId, msgId) {
+
+    setTimeout(function () {
+        bot.deleteMessage(chatId, msgId)
+    }, 1 * 1000)
+
+}
+
+// Function to send a message in every chat
+function sendMessageEverywhere(bot, chats, text) {
+
+    for (chatId of chats) {
+        sendMessage(bot, chatId, text)
     }
 
 }
