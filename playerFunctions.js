@@ -49,7 +49,7 @@ function isPlayer(id, players) {
 }
 
 // Function to get top ram position
-function getTopPosition(player, players) {
+function getTopPosition(playerId, players) {
 
     // Creating copy of players array, buy only of active players
     let playersCopy = []
@@ -72,7 +72,7 @@ function getTopPosition(player, players) {
 
     for (let i = 0; i < playersCopy.length; i++) {
 
-        if (playersCopy[i].id === player.id) {
+        if (playersCopy[i].id === playerId) {
             return `${i + 1} of ${playersCopy.length}`
         }
 

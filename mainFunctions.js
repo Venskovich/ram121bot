@@ -13,7 +13,7 @@ function ram(player, players) {
 
     // If player has already played ram, then return him the following message
     if (player.played) {
-        return `${reply} you have already played\n>RAM: ${player.ram}GB\n>Pos: ${getTopPosition(player, players)}`
+        return `${reply} you have already played\n>RAM: ${player.ram}GB\n>Pos: ${getTopPosition(player.id, players)}`
     }
 
 
@@ -27,7 +27,7 @@ function ram(player, players) {
     player.active = true
 
     // Returning a message of change
-    return `${reply} your ram was ${change < 0 ? "decreased" : "increased"} by ${change}GB\n>RAM: ${player.ram}GB\n>Pos: ${getTopPosition(player, players)}`
+    return `${reply} your ram was ${change < 0 ? "decreased" : "increased"} by ${change}GB\n>RAM: ${player.ram}GB\n>Pos: ${getTopPosition(player.id, players)}`
 
 }
 

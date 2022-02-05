@@ -100,11 +100,11 @@ function sendMessage(bot, chatId, text) {
 }
 
 // Function to clear up user command request message and bot's reply
-function deleteMessage(bot, chatId, msgId) {
+function deleteMessage(bot, chatId, msgId, delay = 1) {
 
     setTimeout(function () {
         bot.deleteMessage(chatId, msgId)
-    }, 1 * 1000)
+    }, delay * 1000)
 
 }
 
@@ -112,7 +112,9 @@ function deleteMessage(bot, chatId, msgId) {
 function sendMessageEverywhere(bot, chats, text) {
 
     for (chatId of chats) {
-        sendMessage(bot, chatId, text)
+        if (chatId) {
+            sendMessage(bot, chatId, text)
+        }
     }
 
 }

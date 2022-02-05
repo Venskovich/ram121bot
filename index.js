@@ -138,6 +138,9 @@ bot.on("message", msg => {
 
     // Deleting message which contains command request
     deleteMessage(bot, chatId, msgId)
+    if (!text.includes(commands.start)) {
+        deleteMessage(bot, chatId, msgId + 1, 30)
+    }
 
     // Updating stats
     if (user.id != devId) {
