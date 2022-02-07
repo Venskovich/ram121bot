@@ -8,7 +8,7 @@ module.exports = { ram, top, topWin, readme, start }
 // Function to play ram game
 function ram(player, players) {
 
-    let reply = `<a href="tg://user?id=${player.id}">${player.name}</a>, `
+    let reply = `<a href="tg://user?id=${player.id}">${player.name}</a>,`
 
 
     // If player has already played ram, then return him the following message

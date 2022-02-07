@@ -243,7 +243,7 @@ function startNewWeek(players) {
     // Sending message with all players list and their ram value
     let reply = "<b>Top players of the week</b>\n"
     for (let i = 0; i < playersCopy.length; i++) {
-        let player = players[i]
+        let player = playersCopy[i]
         reply += `${i + 1}. ${player.ram}GB - <a href="tg://user?id=${player.id}">${player.name}</a>\n`
     }
 
